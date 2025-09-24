@@ -63,37 +63,29 @@ export default async function handler(req, res) {
       </html>
     `
 
-    // ZeptoMail API configuration
-    const zeptomailData = {
-      from: {
-        address: process.env.ZEPTOMAIL_FROM_EMAIL || 'noreply@yourdomain.com',
-        name: 'Personality Quiz App'
-      },
-      to: [{
-        email_address: {
-          address: email,
-          name: name
-        }
-      }],
+    // Resend API configuration
+    const resendData = {
+      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      to: [email],
       subject: `Your Personality Quiz Results - ${recommendation.title}`,
-      htmlbody: emailHtml
+      html: emailHtml
     }
 
-    // Send email via ZeptoMail
-    const response = await fetch('https://api.zeptomail.in/v1.1/email', {
+    // Send email via Resend
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Zoho-enczapikey ${process.env.ZEPTOMAIL_API_KEY}`
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
       },
-      body: JSON.stringify(zeptomailData)
+      body: JSON.stringify(resendData)
     })
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('ZeptoMail API error:', errorData)
-      throw new Error(`ZeptoMail API error: ${response.status}`)
+      console.error('Resend API error:', errorData)
+      throw new Error(`Resend API error: ${response.status}`)
     }
 
     const result = await response.json()
@@ -101,7 +93,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       success: true,
       message: 'Email sent successfully',
-      messageId: result.data?.[0]?.message_id
+      messageId: result.id
     })
 
   } catch (error) {
@@ -114,7 +106,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         message: 'Email simulated successfully (development mode)',
-        note: 'Configure ZEPTOMAIL_API_KEY and ZEPTOMAIL_FROM_EMAIL for actual email sending'
+        note: 'Configure RESEND_API_KEY and RESEND_FROM_EMAIL for actual email sending'
       })
     }
     
