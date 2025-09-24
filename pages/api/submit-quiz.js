@@ -9,27 +9,43 @@ const connectDB = async () => {
   }
   
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not set')
+    }
+    
     await mongoose.connect(process.env.MONGODB_URI, {
       useUnifiedTopology: true,
       useNewUrlParser: true,
     })
+    console.log('MongoDB connected successfully')
   } catch (error) {
     console.error('MongoDB connection error:', error)
-    throw new Error('Database connection failed')
+    throw new Error(`Database connection failed: ${error.message}`)
   }
 }
 
 export default async function handler(req, res) {
+  // Set CORS headers for deployment
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
   try {
+    console.log('Starting quiz submission...')
     await connectDB()
 
     const { name, email, answers } = req.body
 
     if (!name || !email || !answers || answers.length !== 5) {
+      console.error('Invalid request data:', { name: !!name, email: !!email, answersLength: answers?.length })
       return res.status(400).json({ 
         message: 'Missing required fields or incomplete quiz' 
       })
@@ -101,9 +117,18 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Quiz submission error:', error)
+    
+    // More detailed error logging for debugging
+    if (error.name === 'MongoNetworkError' || error.name === 'MongooseError') {
+      return res.status(500).json({ 
+        message: 'Database connection error. Please try again.',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Database unavailable'
+      })
+    }
+    
     res.status(500).json({ 
       message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
     })
   }
 }
