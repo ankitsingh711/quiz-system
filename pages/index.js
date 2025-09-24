@@ -12,6 +12,14 @@ export default function Home() {
     setIsLoading(true)
     setError(null)
 
+    console.log('Frontend: Submitting quiz with data:', formData)
+    console.log('Frontend: Form validation check:', {
+      hasName: !!formData.name,
+      hasEmail: !!formData.email,
+      hasAnswers: !!formData.answers,
+      answersCount: formData.answers?.length
+    })
+
     try {
       const response = await fetch('/api/submit-quiz', {
         method: 'POST',
@@ -24,6 +32,7 @@ export default function Home() {
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('API Error Response:', data)
         throw new Error(data.message || 'Failed to submit quiz')
       }
 

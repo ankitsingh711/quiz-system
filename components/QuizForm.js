@@ -32,15 +32,17 @@ const QuizForm = ({ onSubmit, isLoading }) => {
       newAnswers.push({ questionId, answer })
     }
     
-    setFormData({ ...formData, answers: newAnswers })
+    const updatedFormData = { ...formData, answers: newAnswers }
+    setFormData(updatedFormData)
     
     // Auto-advance to next question after a brief delay
     setTimeout(() => {
       if (currentStep < quizQuestions.length) {
         setCurrentStep(currentStep + 1)
       } else {
-        // Submit the quiz
-        onSubmit(formData)
+        // Submit the quiz with the updated data
+        console.log('Submitting quiz with data:', updatedFormData)
+        onSubmit(updatedFormData)
       }
     }, 500)
   }

@@ -60,10 +60,18 @@
                     { questionId: 1, answer: 'Break it down systematically step by step' },
                     { questionId: 2, answer: 'Ask for help and collaborate with others' },
                     { questionId: 3, answer: 'Use proven methodologies and best practices' },
-                    { questionId: 4, answer: 'Research and gather comprehensive information' },
+                    { questionId: 4, answer: 'Research what others have done before' },
                     { questionId: 5, answer: 'Break it down systematically step by step' }
                 ]
             };
+            
+            console.log('Test data being sent:', testData);
+            console.log('Validation check:', {
+                hasName: !!testData.name,
+                hasEmail: !!testData.email,
+                hasAnswers: !!testData.answers,
+                answersCount: testData.answers?.length
+            });
             
             try {
                 const response = await fetch('/api/submit-quiz', {

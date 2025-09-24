@@ -40,15 +40,33 @@ export default async function handler(req, res) {
 
   try {
     console.log('Starting quiz submission...')
+    console.log('Request body:', JSON.stringify(req.body, null, 2))
     await connectDB()
 
     const { name, email, answers } = req.body
 
+    // More detailed validation logging
+    console.log('Validation check:', {
+      hasName: !!name,
+      nameValue: name,
+      hasEmail: !!email,
+      emailValue: email,
+      hasAnswers: !!answers,
+      answersType: typeof answers,
+      answersLength: answers?.length,
+      answersData: answers
+    })
+
     if (!name || !email || !answers || answers.length !== 5) {
-      console.error('Invalid request data:', { name: !!name, email: !!email, answersLength: answers?.length })
-      return res.status(400).json({ 
-        message: 'Missing required fields or incomplete quiz' 
-      })
+      const errorDetails = {
+        name: !!name,
+        email: !!email,
+        answersExists: !!answers,
+        answersLength: answers?.length,
+        message: 'Missing required fields or incomplete quiz'
+      }
+      console.error('Validation failed:', errorDetails)
+      return res.status(400).json(errorDetails)
     }
 
     // Calculate scores and personality type
